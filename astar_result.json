@@ -1,0 +1,257 @@
+{
+  "algorithm": "A*",
+  "start": "Clifton",
+  "goal": "Gulshan",
+  "path": [
+    "Clifton",
+    "Saddar",
+    "Gulshan"
+  ],
+  "cost_km": 15.5,
+  "nodes_explored": 3,
+  "exploration_order": [
+    {
+      "node": "Clifton",
+      "g_km": 0.0
+    },
+    {
+      "node": "Saddar",
+      "g_km": 5.8
+    },
+    {
+      "node": "Gulshan",
+      "g_km": 15.5
+    }
+  ],
+  "all_nodes": {
+    "Clifton": {
+      "lat": 24.8138,
+      "lon": 67.03
+    },
+    "Defence": {
+      "lat": 24.796,
+      "lon": 67.0565
+    },
+    "Korangi": {
+      "lat": 24.8312,
+      "lon": 67.1253
+    },
+    "Gulshan": {
+      "lat": 24.9216,
+      "lon": 67.0908
+    },
+    "North Nazimabad": {
+      "lat": 24.9466,
+      "lon": 67.0383
+    },
+    "Saddar": {
+      "lat": 24.8607,
+      "lon": 67.0099
+    },
+    "Lyari": {
+      "lat": 24.867,
+      "lon": 67.0002
+    },
+    "Orangi": {
+      "lat": 24.9553,
+      "lon": 66.9997
+    },
+    "SITE": {
+      "lat": 24.9163,
+      "lon": 66.9989
+    },
+    "Karachi Airport": {
+      "lat": 24.9065,
+      "lon": 67.1609
+    },
+    "Malir": {
+      "lat": 24.8958,
+      "lon": 67.1989
+    },
+    "Landhi": {
+      "lat": 24.8516,
+      "lon": 67.19
+    },
+    "Baldia": {
+      "lat": 24.8922,
+      "lon": 66.9633
+    },
+    "Kemari": {
+      "lat": 24.8256,
+      "lon": 66.9816
+    },
+    "Gulberg": {
+      "lat": 24.9001,
+      "lon": 67.07
+    },
+    "Federal B Area": {
+      "lat": 24.9299,
+      "lon": 67.065
+    },
+    "Shah Faisal": {
+      "lat": 24.8819,
+      "lon": 67.1384
+    },
+    "DHA": {
+      "lat": 24.7833,
+      "lon": 67.0714
+    }
+  },
+  "edges": [
+    {
+      "from": "Clifton",
+      "to": "Defence",
+      "km": 4.2
+    },
+    {
+      "from": "Clifton",
+      "to": "Saddar",
+      "km": 5.8
+    },
+    {
+      "from": "Clifton",
+      "to": "Kemari",
+      "km": 9.1
+    },
+    {
+      "from": "Defence",
+      "to": "DHA",
+      "km": 3.5
+    },
+    {
+      "from": "Defence",
+      "to": "Korangi",
+      "km": 9.3
+    },
+    {
+      "from": "DHA",
+      "to": "Korangi",
+      "km": 11.0
+    },
+    {
+      "from": "Korangi",
+      "to": "Landhi",
+      "km": 4.7
+    },
+    {
+      "from": "Korangi",
+      "to": "Shah Faisal",
+      "km": 6.2
+    },
+    {
+      "from": "Korangi",
+      "to": "Malir",
+      "km": 8.4
+    },
+    {
+      "from": "Landhi",
+      "to": "Malir",
+      "km": 5.5
+    },
+    {
+      "from": "Landhi",
+      "to": "Shah Faisal",
+      "km": 4.0
+    },
+    {
+      "from": "Shah Faisal",
+      "to": "Karachi Airport",
+      "km": 7.1
+    },
+    {
+      "from": "Malir",
+      "to": "Karachi Airport",
+      "km": 6.8
+    },
+    {
+      "from": "Saddar",
+      "to": "Lyari",
+      "km": 2.3
+    },
+    {
+      "from": "Saddar",
+      "to": "Gulshan",
+      "km": 9.7
+    },
+    {
+      "from": "Saddar",
+      "to": "Gulberg",
+      "km": 7.2
+    },
+    {
+      "from": "Saddar",
+      "to": "Federal B Area",
+      "km": 9.0
+    },
+    {
+      "from": "Lyari",
+      "to": "Kemari",
+      "km": 4.6
+    },
+    {
+      "from": "Lyari",
+      "to": "Baldia",
+      "km": 7.1
+    },
+    {
+      "from": "Kemari",
+      "to": "Baldia",
+      "km": 9.3
+    },
+    {
+      "from": "Baldia",
+      "to": "Orangi",
+      "km": 5.2
+    },
+    {
+      "from": "Orangi",
+      "to": "SITE",
+      "km": 4.8
+    },
+    {
+      "from": "SITE",
+      "to": "North Nazimabad",
+      "km": 6.5
+    },
+    {
+      "from": "SITE",
+      "to": "Gulberg",
+      "km": 5.3
+    },
+    {
+      "from": "North Nazimabad",
+      "to": "Federal B Area",
+      "km": 3.9
+    },
+    {
+      "from": "North Nazimabad",
+      "to": "Gulshan",
+      "km": 6.1
+    },
+    {
+      "from": "Gulshan",
+      "to": "Federal B Area",
+      "km": 4.2
+    },
+    {
+      "from": "Gulshan",
+      "to": "Karachi Airport",
+      "km": 8.5
+    },
+    {
+      "from": "Gulshan",
+      "to": "Gulberg",
+      "km": 6.0
+    },
+    {
+      "from": "Federal B Area",
+      "to": "Karachi Airport",
+      "km": 9.2
+    },
+    {
+      "from": "Gulberg",
+      "to": "Shah Faisal",
+      "km": 8.8
+    }
+  ]
+}

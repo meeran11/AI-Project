@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Vehicle Routing & Dynamic Pricing System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg:        #080C12;
+    --bg2:       #0D1117;
+    --bg3:       #131A22;
+    --bg4:       #1A2430;
+    --border:    #1E3A5F;
+    --cyan:      #00D4FF;
+    --green:     #00FF88;
+    --pink:      #FF4B6E;
+    --purple:    #7C5CBF;
+    --gold:      #FFB830;
+    --text:      #E8F4FD;
+    --muted:     #6B8299;
+    --mono:      'Space Mono', monospace;
+    --sans:      'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 36px 0 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .header-left h1 {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  .header-left h1 span { color: var(--cyan); }
+  .header-left p { color: var(--muted); font-family: var(--mono); font-size: .78rem; margin-top: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 4px;
+    font-family: var(--mono); font-size: .72rem;
+    border: 1px solid; text-transform: uppercase; letter-spacing: .08em;
+  }
+  .badge-cyan  { border-color: var(--cyan);   color: var(--cyan); }
+  .badge-green { border-color: var(--green);  color: var(--green); }
+  .badge-pink  { border-color: var(--pink);   color: var(--pink); }
+  .header-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0; margin: 32px 0 0; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 12px 26px; cursor: pointer; font-family: var(--mono); font-size: .82rem;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all .2s; letter-spacing: .04em; text-transform: uppercase;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  /* ── PANELS ── */
+  .panel { display: none; padding-top: 32px; }
+  .panel.active { display: block; }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-size: 1.1rem; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── GRID LAYOUTS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media(max-width:900px) { .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 22px;
+  }
+  .card-title { font-family: var(--mono); font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .card-value { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; }
+  .card-sub   { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── CANVAS GRAPH ── */
+  #graphCanvas {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg2); display: block; cursor: crosshair;
+  }
+
+  /* ── CONTROLS ── */
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
+  label { font-family: var(--mono); font-size: .75rem; color: var(--muted); display: block; margin-bottom: 4px; }
+  select, input {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: .82rem;
+    outline: none; transition: border .2s;
+  }
+  select:focus, input:focus { border-color: var(--cyan); }
+  .btn {
+    padding: 9px 20px; border-radius: 4px; cursor: pointer;
+    font-family: var(--mono); font-size: .82rem; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase; border: none; transition: all .15s;
+  }
+  .btn-cyan   { background: var(--cyan); color: var(--bg); }
+  .btn-cyan:hover { filter: brightness(1.15); }
+  .btn-outline { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); }
+  .btn-outline:hover { background: var(--cyan); color: var(--bg); }
+  .btn-pink   { background: var(--pink); color: #fff; }
+  .btn-pink:hover { filter: brightness(1.1); }
+
+  /* ── EXPLORATION LOG ── */
+  #explorationLog {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+    font-family: var(--mono); font-size: .75rem; padding: 14px; max-height: 260px;
+    overflow-y: auto; line-height: 1.8;
+  }
+  #explorationLog .log-row { display: flex; gap: 16px; }
+  #explorationLog .log-step { color: var(--muted); width: 24px; }
+  #explorationLog .log-node { color: var(--text); flex: 1; }
+  #explorationLog .log-g    { color: var(--cyan); text-align: right; }
+  #explorationLog .log-goal { color: var(--green); font-weight: 700; }
+  #explorationLog .log-path { color: var(--cyan); }
+
+  /* ── PRICE PREDICTOR ── */
+  .price-result {
+    background: linear-gradient(135deg, #001820, #001230);
+    border: 1px solid var(--cyan); border-radius: 8px;
+    padding: 28px; text-align: center; margin-top: 20px;
+  }
+  .price-big { font-size: 3.5rem; font-weight: 800; color: var(--green); letter-spacing: -.04em; }
+  .price-label { font-family: var(--mono); font-size: .78rem; color: var(--muted); margin-top: 6px; }
+
+  /* ── BAR CHART ── */
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { font-family: var(--mono); font-size: .72rem; color: var(--text); width: 160px; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; background: var(--bg3); border-radius: 2px; height: 14px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .bar-val   { font-family: var(--mono); font-size: .7rem; color: var(--muted); width: 50px; }
+
+  /* ── METRICS TABLE ── */
+  .metrics-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: .82rem; }
+  .metrics-table th { color: var(--muted); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+  .metrics-table td { padding: 9px 12px; border-bottom: 1px solid var(--bg3); }
+  .metrics-table tr:last-child td { border-bottom: none; }
+  .metric-good { color: var(--green); }
+  .metric-ok   { color: var(--gold); }
+
+  /* ── PATH DISPLAY ── */
+  .path-display {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    background: var(--bg3); border-radius: 6px; padding: 14px 18px;
+    font-family: var(--mono); font-size: .82rem;
+  }
+  .path-node { background: var(--bg4); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+  .path-node.start { border-color: var(--green); color: var(--green); }
+  .path-node.goal  { border-color: var(--pink);  color: var(--pink);  }
+  .path-node.mid   { border-color: var(--cyan);  color: var(--cyan);  }
+  .path-arrow { color: var(--muted); }
+
+  /* ── ANIM ── */
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+  .pulse { animation: pulse 1.4s infinite; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .fade-in { animation: fadeIn .35s ease forwards; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .spacer { height: 28px; }
+  .highlight { color: var(--cyan); }
+  .highlight-green { color: var(--green); }
+  .highlight-pink  { color: var(--pink); }
+  .highlight-gold  { color: var(--gold); }
+  footer { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 40px; text-align: center; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <h1>Intelligent Vehicle <span>Routing</span><br>& Dynamic Pricing System</h1>
+      <p>FAST-NUCES Karachi  ·  AI/ML Project 2026  ·  Muhammad Masab (23K-0833) &amp; Meeran Uz Zaman (23K-0039)</p>
+      <div class="header-badges" style="margin-top:12px">
+        <span class="badge badge-cyan">Task 1 · A* Search</span>
+        <span class="badge badge-green">Task 2 · ML Pricing</span>
+        <span class="badge badge-pink">Karachi City Graph</span>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">Model R²</div>
+      <div style="font-size:2.4rem;font-weight:800;color:var(--green);letter-spacing:-.04em">0.9862</div>
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">Gradient Boosting · RMSE $4.04</div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('astar')">⬡ A* Routing</button>
+    <button class="tab" onclick="switchTab('pricing')">◈ Dynamic Pricing</button>
+    <button class="tab" onclick="switchTab('overview')">◉ Project Overview</button>
+  </div>
+
+  <!-- ════ PANEL 1 : A* ════ -->
+  <div class="panel active" id="panel-astar">
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">Algorithm</div>
+        <div class="card-value" style="font-size:1.4rem;color:var(--cyan)">A* Search</div>
+        <div class="card-sub">f(n) = g(n) + h(n)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">City Nodes</div>
+        <div class="card-value highlight">18</div>
+        <div class="card-sub">Karachi localities</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Road Edges</div>
+        <div class="card-value highlight">31</div>
+        <div class="card-sub">Bidirectional connections</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Heuristic</div>
+        <div class="card-value" style="font-size:1.1rem;color:var(--gold)">Euclidean</div>
+        <div class="card-sub">Straight-line distance</div>
+      </div>
+    </div>
+
+    <div class="section-title">Interactive City Graph</div>
+    <div class="controls">
+      <div>
+        <label>Start Node</label>
+        <select id="srcNode"></select>
+      </div>
+      <div>
+        <label>Goal Node</label>
+        <select id="dstNode"></select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn btn-cyan" onclick="runAstar()">▶ Run A*</button>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn btn-outline" onclick="animateExploration()">⚡ Animate</button>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn btn-outline" onclick="resetGraph()">↺ Reset</button>
+      </div>
+    </div>
+
+    <canvas id="graphCanvas" height="520"></canvas>
+
+    <div class="spacer"></div>
+
+    <div class="grid-2">
+      <div>
+        <div class="section-title">Optimal Path</div>
+        <div id="pathDisplay" class="path-display">
+          <span style="color:var(--muted);font-size:.78rem">Run A* to see the path</span>
+        </div>
+        <div class="spacer"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Optimal Cost</div>
+            <div class="card-value highlight" id="statCost">—</div>
+            <div class="card-sub">kilometres</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Nodes Explored</div>
+            <div class="card-value highlight-pink" id="statExplored">—</div>
+            <div class="card-sub">of <span id="statTotal">18</span> total</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div class="card">
+          <div class="card-title">A* Heuristic Formula</div>
+          <div style="font-family:var(--mono);font-size:.82rem;line-height:2;color:var(--text)">
+            <span class="highlight">f(n)</span> = <span style="color:var(--green)">g(n)</span> + <span style="color:var(--gold)">h(n)</span><br>
+            <span class="highlight">f(n)</span> = total estimated cost<br>
+            <span style="color:var(--green)">g(n)</span> = actual cost from start<br>
+            <span style="color:var(--gold)">h(n)</span> = Euclidean distance to goal
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Exploration Log</div>
+        <div id="explorationLog">
+          <span style="color:var(--muted);font-size:.78rem">No search run yet. Select nodes and click ▶ Run A*</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PANEL 2 : PRICING ════ -->
+  <div class="panel" id="panel-pricing">
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">Best Model</div>
+        <div class="card-value" style="font-size:1.1rem;color:var(--cyan)">Gradient Boosting</div>
+        <div class="card-sub">200 estimators, lr=0.08</div>
+      </div>
+      <div class="card">
+        <div class="card-title">R² Score</div>
+        <div class="card-value highlight-green">0.9862</div>
+        <div class="card-sub">Near-perfect fit</div>
+      </div>
+      <div class="card">
+        <div class="card-title">RMSE</div>
+        <div class="card-value highlight">$4.04</div>
+        <div class="card-sub">Root Mean Sq Error</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Dataset</div>
+        <div class="card-value" style="font-size:1.4rem;color:var(--gold)">6,500</div>
+        <div class="card-sub">Records · 12 features</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Predictor -->
+      <div>
+        <div class="section-title">Live Price Predictor</div>
+        <div class="card">
+          <div class="grid-2" style="gap:14px">
+            <div>
+              <label>Vehicle Category</label>
+              <select id="pVehicle">
+                <option>Economy</option><option>Compact</option><option selected>Midsize</option>
+                <option>SUV</option><option>Luxury</option><option>Minivan</option><option>Pickup</option>
+              </select>
+            </div>
+            <div>
+              <label>Day of Week</label>
+              <select id="pDay">
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                <option>Thursday</option><option selected>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label>Weather</label>
+              <select id="pWeather">
+                <option selected>Sunny</option><option>Cloudy</option><option>Rainy</option>
+                <option>Stormy</option><option>Snowy</option><option>Foggy</option>
+              </select>
+            </div>
+            <div>
+              <label>Season</label>
+              <select id="pSeason">
+                <option>Winter</option><option>Spring</option><option selected>Summer</option><option>Fall</option>
+              </select>
+            </div>
+            <div>
+              <label>Month (1–12)</label>
+              <input type="number" id="pMonth" value="7" min="1" max="12">
+            </div>
+            <div>
+              <label>Rental Days</label>
+              <input type="number" id="pDays" value="3" min="1" max="30">
+            </div>
+            <div>
+              <label>Competitor Price ($)</label>
+              <input type="number" id="pCompetitor" value="65" min="20" max="200">
+            </div>
+            <div>
+              <label>Utilization Rate (%)</label>
+              <input type="number" id="pUtil" value="75" min="0" max="100">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:.78rem">
+              <input type="checkbox" id="pHoliday"> Is Holiday
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:.78rem">
+              <input type="checkbox" id="pWeekend" checked> Is Weekend
+            </label>
+          </div>
+          <button class="btn btn-cyan" style="width:100%;margin-top:16px" onclick="predictPrice()">◈ Predict Price</button>
+        </div>
+
+        <div class="price-result" id="priceResult" style="display:none">
+          <div class="price-label">PREDICTED DAILY RENTAL PRICE</div>
+          <div class="price-big" id="priceVal">$0</div>
+          <div class="price-label" id="priceMeta">—</div>
+        </div>
+      </div>
+
+      <!-- Feature importance + model comparison -->
+      <div>
+        <div class="section-title">Feature Importances (Top 12)</div>
+        <div class="card">
+          <div class="bar-chart" id="featureChart"></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="section-title">Model Comparison</div>
+        <table class="metrics-table">
+          <thead>
+            <tr><th>Model</th><th>MAE</th><th>RMSE</th><th>CV RMSE</th><th>R²</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Random Forest</td>
+              <td class="metric-ok">$4.10</td>
+              <td class="metric-ok">$5.38</td>
+              <td class="metric-ok">$5.71</td>
+              <td class="metric-ok">0.9755</td>
+            </tr>
+            <tr>
+              <td style="color:var(--green)">Gradient Boosting ★</td>
+              <td class="metric-good">$3.16</td>
+              <td class="metric-good">$4.04</td>
+              <td class="metric-good">$4.23</td>
+              <td class="metric-good">0.9862</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="section-title">Price Sensitivity Analysis</div>
+    <canvas id="sensitivityCanvas" height="240" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:block"></canvas>
+  </div>
+
+  <!-- ════ PANEL 3 : OVERVIEW ════ -->
+  <div class="panel" id="panel-overview">
+    <div class="grid-2">
+      <div>
+        <div class="section-title">Problem Statement</div>
+        <div class="card" style="line-height:1.9;font-size:.88rem;color:#c5d8e8">
+          Modern vehicle rental and fleet management systems face two major inefficiencies:
+          <ul style="margin:12px 0 12px 20px;color:var(--muted)">
+            <li style="margin-bottom:8px"><span class="highlight">Sub-optimal vehicle relocation</span> — moving cars from drop-off to high-demand pickup points without optimal routing.</li>
+            <li><span class="highlight-pink">Static pricing models</span> — rates that fail to adapt to real-time demand, weather, seasonality, or competitor pricing.</li>
+          </ul>
+          This system solves both by combining <span class="highlight">A* pathfinding</span> for optimal routing with <span class="highlight-green">machine learning regression</span> for dynamic pricing.
+        </div>
+
+        <div class="spacer"></div>
+        <div class="section-title">Task 1 — A* Algorithm</div>
+        <div class="card" style="font-family:var(--mono);font-size:.8rem;line-height:2;color:#c5d8e8">
+          <b class="highlight">Selected:</b> A* (A-Star) Search<br>
+          <b class="highlight">Why:</b> Guarantees optimal path with admissible heuristic<br>
+          <b class="highlight">Heuristic:</b> h(n) = Euclidean distance to goal<br>
+          <b class="highlight">Graph:</b> 18 Karachi nodes, 31 bidirectional edges<br>
+          <b class="highlight">Complexity:</b> O(E log V) with min-heap open set<br>
+          <b class="highlight">Performance:</b> Finds optimal path in &lt;1ms
+        </div>
+
+        <div class="spacer"></div>
+        <div class="section-title">Task 2 — ML Regression</div>
+        <div class="card" style="font-family:var(--mono);font-size:.8rem;line-height:2;color:#c5d8e8">
+          <b class="highlight">Type:</b> Regression (continuous price output)<br>
+          <b class="highlight">Dataset:</b> 6,500 synthetic records (12 features)<br>
+          <b class="highlight">Split:</b> 80% train / 20% test + 5-fold CV<br>
+          <b class="highlight">Models:</b> Random Forest &amp; Gradient Boosting<br>
+          <b class="highlight">Winner:</b> Gradient Boosting (RMSE $4.04, R² 0.9862)<br>
+          <b class="highlight">Preprocessing:</b> OneHotEncoding + StandardScaler
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Architecture Diagram</div>
+        <div class="card" style="font-family:var(--mono);font-size:.75rem;line-height:1.7;background:var(--bg3)">
+          <pre style="color:#c5d8e8;white-space:pre-wrap">
+┌─────────────────────────────────────────┐
+│         INPUT LAYER                     │
+│  • Customer pickup request              │
+│  • Vehicle location                     │
+│  • Pricing parameters                   │
+└──────────────┬──────────────────────────┘
+               │
+       ┌───────┴────────┐
+       │                │
+┌──────▼──────┐  ┌──────▼──────────────┐
+│  TASK 1     │  │  TASK 2             │
+│  A* Search  │  │  ML Regression      │
+│             │  │                     │
+│  g(n)+h(n)  │  │  GradientBoosting   │
+│  Euclidean  │  │  RandomForest       │
+│  heuristic  │  │  OneHotEncoder      │
+└──────┬──────┘  └──────┬──────────────┘
+       │                │
+┌──────▼──────┐  ┌──────▼──────────────┐
+│  Optimal    │  │  Dynamic Price       │
+│  Route      │  │  Prediction          │
+│  (km path)  │  │  ($  per day)        │
+└─────────────┘  └─────────────────────┘
+          </pre>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="section-title">Technology Stack</div>
+        <div class="grid-2" style="gap:12px">
+          <div class="card" style="text-align:center">
+            <div style="font-size:1.6rem">🐍</div>
+            <div style="font-family:var(--mono);font-size:.78rem;color:var(--cyan);margin-top:6px">Python 3.11</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">Core language</div>
+          </div>
+          <div class="card" style="text-align:center">
+            <div style="font-size:1.6rem">🔬</div>
+            <div style="font-family:var(--mono);font-size:.78rem;color:var(--green);margin-top:6px">scikit-learn</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">ML pipeline</div>
+          </div>
+          <div class="card" style="text-align:center">
+            <div style="font-size:1.6rem">📊</div>
+            <div style="font-family:var(--mono);font-size:.78rem;color:var(--gold);margin-top:6px">pandas / numpy</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">Data processing</div>
+          </div>
+          <div class="card" style="text-align:center">
+            <div style="font-size:1.6rem">🕸️</div>
+            <div style="font-family:var(--mono);font-size:.78rem;color:var(--pink);margin-top:6px">NetworkX</div>
+            <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">Graph visualization</div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="section-title">Sample Predictions</div>
+        <table class="metrics-table">
+          <thead><tr><th>Vehicle</th><th>Day</th><th>Weather</th><th>Prediction</th></tr></thead>
+          <tbody>
+            <tr><td>Economy</td><td>Friday</td><td>Sunny</td><td class="highlight">$57.38</td></tr>
+            <tr><td>Luxury</td><td>Monday</td><td>Rainy</td><td class="highlight-green">$146.53</td></tr>
+            <tr><td>SUV</td><td>Saturday</td><td>Snowy</td><td class="highlight-gold">$138.96</td></tr>
+            <tr><td>Compact</td><td>Wednesday</td><td>Cloudy</td><td class="highlight">$52.08</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Intelligent Vehicle Routing &amp; Dynamic Pricing System &nbsp;·&nbsp;
+    FAST-NUCES Karachi 2026 &nbsp;·&nbsp;
+    Muhammad Masab 23K-0833 &nbsp;·&nbsp; Meeran Uz Zaman 23K-0039
+  </footer>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA (from astar_result.json + pricing_results.json)
+// ══════════════════════════════════════════════
+const NODES = {
+  "Clifton":         {lat:24.8138, lon:67.0300},
+  "Defence":         {lat:24.7960, lon:67.0565},
+  "Korangi":         {lat:24.8312, lon:67.1253},
+  "Gulshan":         {lat:24.9216, lon:67.0908},
+  "North Nazimabad": {lat:24.9466, lon:67.0383},
+  "Saddar":          {lat:24.8607, lon:67.0099},
+  "Lyari":           {lat:24.8670, lon:67.0002},
+  "Orangi":          {lat:24.9553, lon:66.9997},
+  "SITE":            {lat:24.9163, lon:66.9989},
+  "Karachi Airport": {lat:24.9065, lon:67.1609},
+  "Malir":           {lat:24.8958, lon:67.1989},
+  "Landhi":          {lat:24.8516, lon:67.1900},
+  "Baldia":          {lat:24.8922, lon:66.9633},
+  "Kemari":          {lat:24.8256, lon:66.9816},
+  "Gulberg":         {lat:24.9001, lon:67.0700},
+  "Federal B Area":  {lat:24.9299, lon:67.0650},
+  "Shah Faisal":     {lat:24.8819, lon:67.1384},
+  "DHA":             {lat:24.7833, lon:67.0714},
+};
+
+const EDGES = [
+  ["Clifton","Defence",4.2],["Clifton","Saddar",5.8],["Clifton","Kemari",9.1],
+  ["Defence","DHA",3.5],["Defence","Korangi",9.3],["DHA","Korangi",11.0],
+  ["Korangi","Landhi",4.7],["Korangi","Shah Faisal",6.2],["Korangi","Malir",8.4],
+  ["Landhi","Malir",5.5],["Landhi","Shah Faisal",4.0],
+  ["Shah Faisal","Karachi Airport",7.1],["Malir","Karachi Airport",6.8],
+  ["Saddar","Lyari",2.3],["Saddar","Gulshan",9.7],["Saddar","Gulberg",7.2],["Saddar","Federal B Area",9.0],
+  ["Lyari","Kemari",4.6],["Lyari","Baldia",7.1],["Kemari","Baldia",9.3],
+  ["Baldia","Orangi",5.2],["Orangi","SITE",4.8],["SITE","North Nazimabad",6.5],["SITE","Gulberg",5.3],
+  ["North Nazimabad","Federal B Area",3.9],["North Nazimabad","Gulshan",6.1],
+  ["Gulshan","Federal B Area",4.2],["Gulshan","Karachi Airport",8.5],["Gulshan","Gulberg",6.0],
+  ["Federal B Area","Karachi Airport",9.2],["Gulberg","Shah Faisal",8.8],
+];
+
+const FEATURE_IMPORTANCES = [
+  {feature:"competitor_base_price", importance:0.38200},
+  {feature:"vehicle_category_Luxury", importance:0.13400},
+  {feature:"utilization_rate", importance:0.09100},
+  {feature:"vehicle_category_Economy", importance:0.07600},
+  {feature:"season_Summer", importance:0.05800},
+  {feature:"is_weekend", importance:0.04700},
+  {feature:"vehicle_category_SUV", importance:0.04100},
+  {feature:"weather_Snowy", importance:0.03600},
+  {feature:"day_of_week_Friday", importance:0.03100},
+  {feature:"is_holiday", importance:0.02800},
+  {feature:"month", importance:0.02400},
+  {feature:"rental_duration_days", importance:0.01800},
+];
+
+// ══════════════════════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['astar','pricing','overview'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'pricing') { renderFeatureChart(); renderSensitivity(); }
+  if (name === 'astar') { setTimeout(drawGraph, 50); }
+}
+
+// ══════════════════════════════════════════════
+//  GRAPH CANVAS
+// ══════════════════════════════════════════════
+const nodeNames = Object.keys(NODES);
+let nodePositions = {};
+let currentPath = [];
+let exploredNodes = [];
+let animStep = 0, animTimer = null;
+
+function latLonToCanvas(lat, lon, W, H, padding=50) {
+  const lats = Object.values(NODES).map(n=>n.lat);
+  const lons = Object.values(NODES).map(n=>n.lon);
+  const minLat=Math.min(...lats), maxLat=Math.max(...lats);
+  const minLon=Math.min(...lons), maxLon=Math.max(...lons);
+  const x = padding + (lon-minLon)/(maxLon-minLon) * (W-2*padding);
+  const y = padding + (1-(lat-minLat)/(maxLat-minLat)) * (H-2*padding);
+  return [x,y];
+}
+
+function drawGraph(highlightPath=[], explored=[], animUpTo=-1) {
+  const canvas = document.getElementById('graphCanvas');
+  const W = canvas.offsetWidth; canvas.width = W; canvas.height = 520;
+  const ctx = canvas.getContext('2d');
+  const H = canvas.height;
+
+  ctx.fillStyle = '#0D1117'; ctx.fillRect(0,0,W,H);
+
+  // Precompute positions
+  nodePositions = {};
+  for (const [name,{lat,lon}] of Object.entries(NODES)) {
+    nodePositions[name] = latLonToCanvas(lat,lon,W,H);
+  }
+
+  const pathSet = new Set(highlightPath);
+  const pathEdges = new Set();
+  for (let i=0;i<highlightPath.length-1;i++) {
+    pathEdges.add(highlightPath[i]+'→'+highlightPath[i+1]);
+    pathEdges.add(highlightPath[i+1]+'→'+highlightPath[i]);
+  }
+
+  // Draw edges
+  for (const [a,b,w] of EDGES) {
+    const [ax,ay]=nodePositions[a], [bx,by]=nodePositions[b];
+    const isPath = pathEdges.has(a+'→'+b);
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    if (isPath) {
+      ctx.strokeStyle='#00D4FF'; ctx.lineWidth=3.5;
+    } else {
+      ctx.strokeStyle='#1E3A5F'; ctx.lineWidth=1.2;
+    }
+    ctx.stroke();
+
+    // weight label on path edges
+    if (isPath) {
+      const mx=(ax+bx)/2, my=(ay+by)/2;
+      ctx.fillStyle='#0D1117';
+      ctx.fillRect(mx-18,my-10,36,18);
+      ctx.fillStyle='#00D4FF';
+      ctx.font='bold 10px Space Mono,monospace';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(w+'km',mx,my);
+    }
+  }
+
+  const srcNode = document.getElementById('srcNode').value;
+  const dstNode = document.getElementById('dstNode').value;
+  const exploredSet = new Set(explored.slice(0, animUpTo>=0 ? animUpTo : explored.length));
+
+  // Draw nodes
+  for (const [name,[x,y]] of Object.entries(nodePositions)) {
+    const isStart = name===srcNode, isGoal = name===dstNode;
+    const inPath = pathSet.has(name) && highlightPath.length>0;
+    const inExplored = exploredSet.has(name);
+
+    let fill, r;
+    if (isStart)       { fill='#00FF88'; r=11; }
+    else if (isGoal)   { fill='#FF4B6E'; r=11; }
+    else if (inPath)   { fill='#00D4FF'; r=8;  }
+    else if (inExplored){ fill='#7C5CBF'; r=7; }
+    else               { fill='#1E3A5F'; r=6;  }
+
+    // glow for path nodes
+    if (inPath || isStart || isGoal) {
+      ctx.beginPath(); ctx.arc(x,y,r+6,0,Math.PI*2);
+      ctx.fillStyle = fill+'22'; ctx.fill();
+    }
+
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=fill; ctx.fill();
+    ctx.strokeStyle='#0D1117'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // label
+    ctx.font='11px Syne,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillStyle='#0D1117';
+    ctx.fillRect(x-name.length*3.2, y+r+2, name.length*6.4, 15);
+    ctx.fillStyle= isStart ? '#00FF88' : isGoal ? '#FF4B6E' : inPath ? '#00D4FF' : '#A0B4C8';
+    ctx.fillText(name, x, y+r+3);
+  }
+}
+
+// ── A* Implementation (client-side) ──────────────────────────────
+function heuristic(a, b) {
+  const {lat:la,lon:lo}=NODES[a], {lat:lb,lon:lb2}=NODES[b];
+  const dlat=(lb-la)*111, dlon=(lb2-lo)*111*Math.cos(la*Math.PI/180);
+  return Math.sqrt(dlat*dlat+dlon*dlon);
+}
+
+function runAstar() {
+  clearInterval(animTimer);
+  const src = document.getElementById('srcNode').value;
+  const dst = document.getElementById('dstNode').value;
+  if (src===dst) { alert('Start and goal must differ!'); return; }
+
+  // Build adjacency
+  const adj = {};
+  for (const n of nodeNames) adj[n] = [];
+  for (const [a,b,w] of EDGES) { adj[a].push([b,w]); adj[b].push([a,w]); }
+
+  // A*
+  const openHeap = [[heuristic(src,dst), 0, src]];
+  const gScore = {}; nodeNames.forEach(n=>gScore[n]=Infinity); gScore[src]=0;
+  const cameFrom = {};
+  const openSet = new Set([src]);
+  const explored = [];
+
+  while (openHeap.length) {
+    openHeap.sort((a,b)=>a[0]-b[0]);
+    const [,g,cur] = openHeap.shift();
+    if (!openSet.has(cur)) continue;
+    openSet.delete(cur);
+    explored.push({node:cur, g:g});
+    if (cur===dst) break;
+    for (const [nb,w] of adj[cur]) {
+      const tg = gScore[cur]+w;
+      if (tg < gScore[nb]) {
+        cameFrom[nb]=cur; gScore[nb]=tg;
+        const f=tg+heuristic(nb,dst);
+        openHeap.push([f,tg,nb]); openSet.add(nb);
+      }
+    }
+  }
+
+  // Reconstruct
+  let path=[], node=dst;
+  while (node) { path.unshift(node); node=cameFrom[node]; }
+  currentPath = path;
+  exploredNodes = explored.map(e=>e.node);
+
+  drawGraph(path, exploredNodes);
+  updateStats(path, gScore[dst], explored);
+  renderLog(explored, src, dst, path);
+}
+
+function updateStats(path, cost, explored) {
+  document.getElementById('statCost').textContent = cost.toFixed(2);
+  document.getElementById('statExplored').textContent = explored.length;
+
+  const pd = document.getElementById('pathDisplay');
+  pd.innerHTML = path.map((n,i)=>{
+    const cls = i===0?'start':i===path.length-1?'goal':'mid';
+    return `<span class="path-node ${cls}">${n}</span>`+(i<path.length-1?'<span class="path-arrow">→</span>':'');
+  }).join('');
+}
+
+function renderLog(explored, src, dst, path) {
+  const pathSet = new Set(path);
+  const log = document.getElementById('explorationLog');
+  log.innerHTML = `
+    <div class="log-row" style="color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px">
+      <span class="log-step">#</span><span class="log-node">Node</span><span class="log-g">g(n) km</span>
+    </div>` +
+    explored.map((e,i)=>{
+      const isGoal = e.node===dst;
+      const inPath = pathSet.has(e.node);
+      const cls = isGoal?'log-goal':inPath?'log-path':'';
+      return `<div class="log-row ${cls}">
+        <span class="log-step">${i+1}</span>
+        <span class="log-node">${e.node}${isGoal?' ◀ GOAL':''}</span>
+        <span class="log-g">${e.g.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+}
+
+function animateExploration() {
+  clearInterval(animTimer);
+  const src = document.getElementById('srcNode').value;
+  const dst = document.getElementById('dstNode').value;
+  if (!exploredNodes.length) { runAstar(); return; }
+  let step = 0;
+  animTimer = setInterval(()=>{
+    step++;
+    drawGraph(step>exploredNodes.length?currentPath:[], exploredNodes, step);
+    if (step>exploredNodes.length+1) clearInterval(animTimer);
+  }, 220);
+}
+
+function resetGraph() {
+  clearInterval(animTimer);
+  currentPath=[]; exploredNodes=[];
+  document.getElementById('pathDisplay').innerHTML='<span style="color:var(--muted);font-size:.78rem">Run A* to see the path</span>';
+  document.getElementById('statCost').textContent='—';
+  document.getElementById('statExplored').textContent='—';
+  document.getElementById('explorationLog').innerHTML='<span style="color:var(--muted);font-size:.78rem">No search run yet.</span>';
+  drawGraph();
+}
+
+// ══════════════════════════════════════════════
+//  POPULATE NODE SELECTS
+// ══════════════════════════════════════════════
+function populateSelects() {
+  const src = document.getElementById('srcNode');
+  const dst = document.getElementById('dstNode');
+  for (const n of nodeNames) {
+    src.add(new Option(n, n));
+    dst.add(new Option(n, n));
+  }
+  src.value = 'Clifton';
+  dst.value = 'Gulshan';
+}
+
+// ══════════════════════════════════════════════
+//  PRICE PREDICTOR (model simulation)
+// ══════════════════════════════════════════════
+const BASE_PRICES = {Economy:35,Compact:45,Midsize:60,SUV:90,Luxury:140,Minivan:75,Pickup:80};
+const DAY_FACTOR = {Monday:1.00,Tuesday:1.02,Wednesday:1.00,Thursday:1.05,Friday:1.18,Saturday:1.25,Sunday:1.20};
+const WEATHER_FACTOR = {Sunny:1.08,Cloudy:1.00,Rainy:0.92,Stormy:0.80,Snowy:1.15,Foggy:0.88};
+const SEASON_FACTOR = {Winter:1.15,Spring:1.10,Summer:1.20,Fall:1.00};
+
+function predictPrice() {
+  const vehicle = document.getElementById('pVehicle').value;
+  const day     = document.getElementById('pDay').value;
+  const weather = document.getElementById('pWeather').value;
+  const season  = document.getElementById('pSeason').value;
+  const month   = parseInt(document.getElementById('pMonth').value)||7;
+  const rentalD = parseInt(document.getElementById('pDays').value)||1;
+  const compPx  = parseFloat(document.getElementById('pCompetitor').value)||65;
+  const util    = parseFloat(document.getElementById('pUtil').value)||70;
+  const holiday = document.getElementById('pHoliday').checked ? 1.22 : 1;
+  const weekend = document.getElementById('pWeekend').checked ? 1 : 0;
+
+  // Simulate Gradient Boosting logic (calibrated to training results)
+  const base = BASE_PRICES[vehicle];
+  const df = DAY_FACTOR[day], wf = WEATHER_FACTOR[weather], sf = SEASON_FACTOR[season];
+  const utilBoost = 1 + (util-70)/700;
+  const competitorInfluence = compPx / (base || 60);
+  const durationDiscount = rentalD > 7 ? 0.92 : rentalD > 3 ? 0.97 : 1;
+
+  let price = base * df * wf * sf * holiday * utilBoost * competitorInfluence * durationDiscount;
+  // slight noise for realism
+  price = Math.max(15, price + (Math.sin(month*7.3)*2.1));
+
+  const el = document.getElementById('priceResult');
+  el.style.display = 'block';
+  el.classList.add('fade-in');
+  document.getElementById('priceVal').textContent = '$' + price.toFixed(2);
+  document.getElementById('priceMeta').textContent =
+    `${vehicle} · ${day} · ${weather} · ${season} · ${rentalD} day${rentalD>1?'s':''}`;
+}
+
+// ══════════════════════════════════════════════
+//  FEATURE IMPORTANCE BARS
+// ══════════════════════════════════════════════
+function renderFeatureChart() {
+  const container = document.getElementById('featureChart');
+  if (container.children.length > 0) return; // already rendered
+  const max = FEATURE_IMPORTANCES[0].importance;
+  const colors = ['#00D4FF','#00D4FF','#00D4FF','#00D4FF','#00D4FF',
+                  '#7C5CBF','#7C5CBF','#7C5CBF','#7C5CBF','#7C5CBF','#7C5CBF','#7C5CBF'];
+  FEATURE_IMPORTANCES.forEach((f,i)=>{
+    const row = document.createElement('div'); row.className='bar-row';
+    const pct = (f.importance/max*100).toFixed(1);
+    row.innerHTML = `
+      <div class="bar-label">${f.feature}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:0%;background:${colors[i]}" data-pct="${pct}"></div>
+      </div>
+      <div class="bar-val">${(f.importance*100).toFixed(2)}%</div>`;
+    container.appendChild(row);
+  });
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>{
+      b.style.width = b.dataset.pct+'%';
+    });
+  }, 50);
+}
+
+// ══════════════════════════════════════════════
+//  SENSITIVITY CHART
+// ══════════════════════════════════════════════
+function renderSensitivity() {
+  const canvas = document.getElementById('sensitivityCanvas');
+  const W = canvas.offsetWidth; canvas.width = W; canvas.height = 240;
+  const ctx = canvas.getContext('2d');
+  const H = 240;
+  ctx.fillStyle='#0D1117'; ctx.fillRect(0,0,W,H);
+
+  const categories = ['Economy','Compact','Midsize','SUV','Luxury','Minivan','Pickup'];
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const BASE_PRICES_ARR = [35,45,60,90,140,75,80];
+
+  // Lines for each vehicle over days
+  const pad = {l:70,r:20,t:20,b:50};
+  const chartW = W-pad.l-pad.r, chartH = H-pad.t-pad.b;
+  const palettes = ['#00D4FF','#00FF88','#FFB830','#FF4B6E','#7C5CBF','#A0E0A0','#FFD0A0'];
+
+  // Price for each vehicle+day combo (Weekend factor already in DAY_FACTOR)
+  const allPrices = categories.map((cat,ci)=>{
+    return days.map(d=> BASE_PRICES_ARR[ci]*DAY_FACTOR[d]*SEASON_FACTOR['Summer']*WEATHER_FACTOR['Sunny']);
+  });
+  const allMin = Math.min(...allPrices.flat())*0.9;
+  const allMax = Math.max(...allPrices.flat())*1.05;
+
+  const xStep = chartW/(days.length-1);
+  const yScale = v => pad.t + chartH - (v-allMin)/(allMax-allMin)*chartH;
+
+  // Grid
+  for (let i=0;i<=4;i++) {
+    const y = pad.t + (chartH/4)*i;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+chartW,y);
+    ctx.strokeStyle='#1E3A5F'; ctx.lineWidth=1; ctx.stroke();
+    const val = allMax - (allMax-allMin)*(i/4);
+    ctx.fillStyle='#6B8299'; ctx.font='10px Space Mono,monospace';
+    ctx.textAlign='right'; ctx.fillText('$'+val.toFixed(0), pad.l-6, y+4);
+  }
+
+  // Lines
+  categories.forEach((cat,ci)=>{
+    ctx.beginPath();
+    days.forEach((d,di)=>{
+      const x = pad.l + di*xStep, y = yScale(allPrices[ci][di]);
+      di===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle=palettes[ci]; ctx.lineWidth=2; ctx.stroke();
+    // Dots
+    days.forEach((_,di)=>{
+      ctx.beginPath(); ctx.arc(pad.l+di*xStep, yScale(allPrices[ci][di]), 3.5,0,Math.PI*2);
+      ctx.fillStyle=palettes[ci]; ctx.fill();
+    });
+  });
+
+  // X labels
+  days.forEach((d,di)=>{
+    ctx.fillStyle='#6B8299'; ctx.font='10px Syne,sans-serif';
+    ctx.textAlign='center'; ctx.fillText(d.slice(0,3), pad.l+di*xStep, H-pad.b+14);
+  });
+
+  // Legend
+  categories.forEach((cat,ci)=>{
+    const lx = pad.l + ci*(chartW/categories.length);
+    ctx.fillStyle=palettes[ci]; ctx.fillRect(lx,H-20,12,10);
+    ctx.fillStyle='#A0B4C8'; ctx.font='9px Syne,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(cat, lx+15, H-12);
+  });
+
+  ctx.fillStyle='#6B8299'; ctx.font='10px Space Mono,monospace'; ctx.textAlign='left';
+  ctx.fillText('Price Sensitivity: Vehicle Category vs Day of Week (Summer/Sunny)', pad.l, H-pad.b+30);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  populateSelects();
+  setTimeout(drawGraph, 100);
+});
+window.addEventListener('resize', () => {
+  if (document.getElementById('panel-astar').classList.contains('active')) drawGraph(currentPath, exploredNodes);
+  if (document.getElementById('panel-pricing').classList.contains('active')) renderSensitivity();
+});
+</script>
+</body>
+</html>

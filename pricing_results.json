@@ -1,0 +1,133 @@
+{
+  "best_model": "Gradient Boosting",
+  "metrics": {
+    "Random Forest": {
+      "MAE": 4.0962,
+      "RMSE": 5.3759,
+      "R2": 0.9755,
+      "CV_RMSE": 5.7054
+    },
+    "Gradient Boosting": {
+      "MAE": 3.1586,
+      "RMSE": 4.0385,
+      "R2": 0.9862,
+      "CV_RMSE": 4.2327
+    }
+  },
+  "feature_importances": [
+    {
+      "feature": "competitor_base_price",
+      "importance": 0.76347
+    },
+    {
+      "feature": "is_weekend",
+      "importance": 0.04227
+    },
+    {
+      "feature": "utilization_rate",
+      "importance": 0.03035
+    },
+    {
+      "feature": "vehicle_category_Luxury",
+      "importance": 0.02796
+    },
+    {
+      "feature": "weather_Sunny",
+      "importance": 0.02041
+    },
+    {
+      "feature": "vehicle_category_SUV",
+      "importance": 0.01808
+    },
+    {
+      "feature": "weather_Stormy",
+      "importance": 0.01639
+    },
+    {
+      "feature": "is_holiday",
+      "importance": 0.01385
+    },
+    {
+      "feature": "season_Summer",
+      "importance": 0.0131
+    },
+    {
+      "feature": "weather_Snowy",
+      "importance": 0.01303
+    },
+    {
+      "feature": "season_Fall",
+      "importance": 0.00921
+    },
+    {
+      "feature": "month",
+      "importance": 0.00891
+    },
+    {
+      "feature": "weather_Rainy",
+      "importance": 0.00699
+    },
+    {
+      "feature": "vehicle_category_Pickup",
+      "importance": 0.00311
+    },
+    {
+      "feature": "weather_Foggy",
+      "importance": 0.00303
+    }
+  ],
+  "sample_predictions": [
+    {
+      "vehicle_category": "Economy",
+      "day_of_week": "Friday",
+      "weather": "Sunny",
+      "season": "Summer",
+      "month": 7,
+      "is_weekend": 1,
+      "is_holiday": 0,
+      "competitor_base_price": 32,
+      "utilization_rate": 82,
+      "rental_duration_days": 2,
+      "predicted_price": 57.38
+    },
+    {
+      "vehicle_category": "Luxury",
+      "day_of_week": "Monday",
+      "weather": "Rainy",
+      "season": "Winter",
+      "month": 1,
+      "is_weekend": 0,
+      "is_holiday": 1,
+      "competitor_base_price": 130,
+      "utilization_rate": 55,
+      "rental_duration_days": 1,
+      "predicted_price": 146.53
+    },
+    {
+      "vehicle_category": "SUV",
+      "day_of_week": "Saturday",
+      "weather": "Snowy",
+      "season": "Winter",
+      "month": 12,
+      "is_weekend": 1,
+      "is_holiday": 0,
+      "competitor_base_price": 88,
+      "utilization_rate": 91,
+      "rental_duration_days": 3,
+      "predicted_price": 138.96
+    },
+    {
+      "vehicle_category": "Compact",
+      "day_of_week": "Wednesday",
+      "weather": "Cloudy",
+      "season": "Spring",
+      "month": 4,
+      "is_weekend": 0,
+      "is_holiday": 0,
+      "competitor_base_price": 42,
+      "utilization_rate": 60,
+      "rental_duration_days": 7,
+      "predicted_price": 52.08
+    }
+  ]
+}
