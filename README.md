@@ -18,7 +18,7 @@ A dual-task AI/ML system implementing:
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # 1. Install dependencies
@@ -30,16 +30,31 @@ python generate_dataset.py
 # 3. Run both tasks (A* + ML training)
 python main.py
 
-# 4. Run only A* (custom route)
-python main.py --task astar --src "Clifton" --dst "Karachi Airport"
-
-# 5. Run only pricing ML
-python main.py --task pricing
-
-# 6. Open interactive dashboard
-open dashboard.html   # macOS
-start dashboard.html  # Windows
+# 4. Open interactive dashboard
+start smartroute-ui.html   # Modern UI Dashboard
+# OR
+start dashboard.html       # Original dashboard
 ```
+
+---
+
+## 🎨 User Interface
+
+### SmartRoute AI Dashboard (`smartroute-ui.html`)
+A modern, professional UI featuring:
+
+- **🚗 Route Planning**: Interactive A* pathfinding visualization
+- **💰 Price Prediction**: Live ML-based pricing calculator  
+- **📊 Analytics**: Feature importance and sensitivity analysis
+- **🎯 Real-time Updates**: Dynamic calculations and animations
+- **📱 Responsive Design**: Works on desktop and mobile devices
+
+### Features
+- **Interactive City Graph**: Click to explore Karachi's 18 locations
+- **A* Algorithm Demo**: Watch the search algorithm in action
+- **Price Predictor**: Input parameters to get instant price predictions
+- **Model Analytics**: View feature importance and performance metrics
+- **Modern UI/UX**: Dark theme with smooth animations and transitions
 
 ---
 

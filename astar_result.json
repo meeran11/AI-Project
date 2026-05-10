@@ -1,26 +1,21 @@
 {
   "algorithm": "A*",
-  "start": "Clifton",
-  "goal": "Gulshan",
+  "start": "Landhi",
+  "goal": "Malir",
   "path": [
-    "Clifton",
-    "Saddar",
-    "Gulshan"
+    "Landhi",
+    "Malir"
   ],
-  "cost_km": 15.5,
-  "nodes_explored": 3,
+  "cost_km": 5.5,
+  "nodes_explored": 2,
   "exploration_order": [
     {
-      "node": "Clifton",
+      "node": "Landhi",
       "g_km": 0.0
     },
     {
-      "node": "Saddar",
-      "g_km": 5.8
-    },
-    {
-      "node": "Gulshan",
-      "g_km": 15.5
+      "node": "Malir",
+      "g_km": 5.5
     }
   ],
   "all_nodes": {

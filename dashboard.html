@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intelligent Vehicle Routing & Dynamic Pricing System</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
-
-  :root {
-    --bg:        #080C12;
+@import url('https://fonts.googleapis.com/css2?family=Fjalla+One&family=Forum&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Stack+Sans+Text:wght@200..700&display=swap');:root {
+    --bg:        #101208;
     --bg2:       #0D1117;
     --bg3:       #131A22;
     --bg4:       #1A2430;
@@ -455,7 +453,7 @@
     <div class="spacer"></div>
 
     <div class="section-title">Price Sensitivity Analysis</div>
-    <canvas id="sensitivityCanvas" height="240" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:block"></canvas>
+    <canvas id="sensitivityCanvas" height="320" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:block"></canvas>
   </div>
 
   <!-- ════ PANEL 3 : OVERVIEW ════ -->
@@ -642,7 +640,7 @@ function switchTab(name) {
 // ══════════════════════════════════════════════
 //  GRAPH CANVAS
 // ══════════════════════════════════════════════
-const nodeNames = Object.keys(NODES);
+const nodeNames = Object.keys(NODES).sort();
 let nodePositions = {};
 let currentPath = [];
 let exploredNodes = [];
@@ -833,7 +831,7 @@ function animateExploration() {
     step++;
     drawGraph(step>exploredNodes.length?currentPath:[], exploredNodes, step);
     if (step>exploredNodes.length+1) clearInterval(animTimer);
-  }, 220);
+  }, 600);
 }
 
 function resetGraph() {
@@ -932,23 +930,26 @@ function renderFeatureChart() {
 // ══════════════════════════════════════════════
 function renderSensitivity() {
   const canvas = document.getElementById('sensitivityCanvas');
-  const W = canvas.offsetWidth; canvas.width = W; canvas.height = 240;
+  const W = canvas.offsetWidth; canvas.width = W; canvas.height = 320;
   const ctx = canvas.getContext('2d');
-  const H = 240;
+  const H = 320;
   ctx.fillStyle='#0D1117'; ctx.fillRect(0,0,W,H);
 
   const categories = ['Economy','Compact','Midsize','SUV','Luxury','Minivan','Pickup'];
-  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const BASE_PRICES_ARR = [35,45,60,90,140,75,80];
 
   // Lines for each vehicle over days
-  const pad = {l:70,r:20,t:20,b:50};
+  const pad = {l:80,r:20,t:40,b:80};
   const chartW = W-pad.l-pad.r, chartH = H-pad.t-pad.b;
   const palettes = ['#00D4FF','#00FF88','#FFB830','#FF4B6E','#7C5CBF','#A0E0A0','#FFD0A0'];
 
   // Price for each vehicle+day combo (Weekend factor already in DAY_FACTOR)
   const allPrices = categories.map((cat,ci)=>{
-    return days.map(d=> BASE_PRICES_ARR[ci]*DAY_FACTOR[d]*SEASON_FACTOR['Summer']*WEATHER_FACTOR['Sunny']);
+    return days.map((d,di)=>{
+      const dayKey = Object.keys(DAY_FACTOR)[di];
+      return BASE_PRICES_ARR[ci] * DAY_FACTOR[dayKey] * SEASON_FACTOR['Summer'] * WEATHER_FACTOR['Sunny'];
+    });
   });
   const allMin = Math.min(...allPrices.flat())*0.9;
   const allMax = Math.max(...allPrices.flat())*1.05;
@@ -956,47 +957,74 @@ function renderSensitivity() {
   const xStep = chartW/(days.length-1);
   const yScale = v => pad.t + chartH - (v-allMin)/(allMax-allMin)*chartH;
 
-  // Grid
-  for (let i=0;i<=4;i++) {
-    const y = pad.t + (chartH/4)*i;
+  // Title
+  ctx.fillStyle='#E8F4FD'; ctx.font='bold 14px Syne,sans-serif';
+  ctx.textAlign='left'; ctx.fillText('Price Sensitivity Analysis', pad.l, 25);
+
+  // Subtitle
+  ctx.fillStyle='#6B8299'; ctx.font='11px Space Mono,monospace';
+  ctx.fillText('Vehicle Category vs Day of Week (Summer/Sunny)', pad.l, 40);
+
+  // Grid lines
+  for (let i=0;i<=5;i++) {
+    const y = pad.t + (chartH/5)*i;
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+chartW,y);
     ctx.strokeStyle='#1E3A5F'; ctx.lineWidth=1; ctx.stroke();
-    const val = allMax - (allMax-allMin)*(i/4);
-    ctx.fillStyle='#6B8299'; ctx.font='10px Space Mono,monospace';
-    ctx.textAlign='right'; ctx.fillText('$'+val.toFixed(0), pad.l-6, y+4);
+    const val = allMax - (allMax-allMin)*(i/5);
+    ctx.fillStyle='#6B8299'; ctx.font='11px Space Mono,monospace';
+    ctx.textAlign='right'; ctx.fillText('$'+val.toFixed(0), pad.l-8, y+4);
   }
 
-  // Lines
+  // Y-axis label
+  ctx.save();
+  ctx.translate(20, pad.t + chartH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='#6B8299'; ctx.font='11px Space Mono,monospace';
+  ctx.textAlign='center'; ctx.fillText('Price ($)', 0, 0);
+  ctx.restore();
+
+  // Lines - draw in two passes: first background lines, then foreground
   categories.forEach((cat,ci)=>{
     ctx.beginPath();
     days.forEach((d,di)=>{
       const x = pad.l + di*xStep, y = yScale(allPrices[ci][di]);
       di===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
     });
-    ctx.strokeStyle=palettes[ci]; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle=palettes[ci]; ctx.lineWidth=ci < 3 ? 3 : 2; ctx.stroke(); // Thicker lines for first 3 categories
+    ctx.globalAlpha = 0.7;
     // Dots
     days.forEach((_,di)=>{
-      ctx.beginPath(); ctx.arc(pad.l+di*xStep, yScale(allPrices[ci][di]), 3.5,0,Math.PI*2);
+      ctx.beginPath(); ctx.arc(pad.l+di*xStep, yScale(allPrices[ci][di]), ci < 3 ? 4 : 3,0,Math.PI*2);
       ctx.fillStyle=palettes[ci]; ctx.fill();
     });
+    ctx.globalAlpha = 1;
   });
 
   // X labels
   days.forEach((d,di)=>{
-    ctx.fillStyle='#6B8299'; ctx.font='10px Syne,sans-serif';
-    ctx.textAlign='center'; ctx.fillText(d.slice(0,3), pad.l+di*xStep, H-pad.b+14);
+    ctx.fillStyle='#6B8299'; ctx.font='12px Syne,sans-serif';
+    ctx.textAlign='center'; ctx.fillText(d, pad.l+di*xStep, H-pad.b+18);
   });
 
-  // Legend
-  categories.forEach((cat,ci)=>{
-    const lx = pad.l + ci*(chartW/categories.length);
-    ctx.fillStyle=palettes[ci]; ctx.fillRect(lx,H-20,12,10);
-    ctx.fillStyle='#A0B4C8'; ctx.font='9px Syne,sans-serif'; ctx.textAlign='left';
-    ctx.fillText(cat, lx+15, H-12);
+  // Legend - positioned better
+  const legendItems = categories.slice(0, 4); // Show only first 4 to reduce clutter
+  const legendY = H - 50;
+  legendItems.forEach((cat,ci)=>{
+    const lx = pad.l + ci*(chartW/4);
+    ctx.fillStyle=palettes[ci]; ctx.fillRect(lx, legendY, 14, 12);
+    ctx.fillStyle='#A0B4C8'; ctx.font='11px Syne,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(cat, lx+18, legendY+10);
   });
 
-  ctx.fillStyle='#6B8299'; ctx.font='10px Space Mono,monospace'; ctx.textAlign='left';
-  ctx.fillText('Price Sensitivity: Vehicle Category vs Day of Week (Summer/Sunny)', pad.l, H-pad.b+30);
+  // Second row of legend
+  const legendItems2 = categories.slice(4);
+  const legendY2 = H - 30;
+  legendItems2.forEach((cat,ci)=>{
+    const lx = pad.l + ci*(chartW/3);
+    ctx.fillStyle=palettes[ci+4]; ctx.fillRect(lx, legendY2, 14, 12);
+    ctx.fillStyle='#A0B4C8'; ctx.font='11px Syne,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(cat, lx+18, legendY2+10);
+  });
 }
 
 // ══════════════════════════════════════════════

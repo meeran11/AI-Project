@@ -517,13 +517,13 @@ def run_pricing_task():
 def main():
     parser = argparse.ArgumentParser(description="Intelligent Vehicle Routing & Dynamic Pricing System")
     parser.add_argument("--task", choices=["astar", "pricing", "both"], default="both")
-    parser.add_argument("--src",  default="Clifton",  help="A* start node")
-    parser.add_argument("--dst",  default="Gulshan",  help="A* goal node")
+    parser.add_argument("--src",  default="Landhi",  help="A* start node")
+    parser.add_argument("--dst",  default="Malir",  help="A* goal node")
     args = parser.parse_args()
 
-    print("\n╔══════════════════════════════════════════════════════════╗")
-    print("║  Intelligent Vehicle Routing & Dynamic Pricing System   ║")
-    print("║  FAST-NUCES AI/ML Project  ─  2026                     ║")
+    print("\n╔════════════════════════════════════════════════════════╗")
+    print("║  Intelligent Vehicle Routing & Dynamic Pricing System    ║")
+    print("║  FAST-NUCES AI/ML Project  ─  2026                       ║")
     print("╚══════════════════════════════════════════════════════════╝")
 
     if args.task in ("astar", "both"):
